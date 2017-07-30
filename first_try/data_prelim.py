@@ -81,7 +81,16 @@ all_params = { 'KNeighborsClassifier': { 'n_neighbors' : range(3, 30, 3),
                                            'random_state': [0],
                                            'max_depth': range(2,11),
                                            'min_samples_split':range(2,9),
-                                           'min_samples_leaf':range(1,9) }
+                                           'min_samples_leaf':range(1,9) },
+
+               
+               'RandomForestClassifier' :  { 'n_estimators' : range(2,7),
+                                             'criterion': ["entropy", "gini"],
+                                             'max_features':["sqrt", "log2"],
+                                             'random_state': [0],
+                                             'max_depth': range(2,11),
+                                             'min_samples_split':range(2,9),
+                                             'min_samples_leaf':range(1,9) }
                }
 
 

@@ -1,0 +1,251 @@
+#+TITLE: Titanic Survival Exploration
+#+OPTIONS: toc:nil 
+* Objective
+  Explore a subset of the RMS titanic passenger manifest to determine which features best predict whether
+  someone survived or did not survive.
+
+* Dataset
+  From a sample of the RMS Titanic data, we can see the various features present for each passenger on the ship:
+
+  - Survived: Outcome of survival (0 = No; 1 = Yes)
+  - Pclass: Socio-economic class (1 = Upper class; 2 = Middle class; 3 = Lower class)
+  - Name: Name of passenger
+  - Sex: Sex of the passenger
+  - Age: Age of the passenger (Some entries contain NaN)
+  - SibSp: Number of siblings and spouses of the passenger aboard
+  - Parch: Number of parents and children of the passenger aboard
+  - Ticket: Ticket number of the passenger
+  - Fare: Fare paid by the passenger
+  - Cabin Cabin number of the passenger (Some entries contain NaN)
+  - Embarked: Port of embarkation of the passenger (C = Cherbourg; Q = Queenstown; S = Southampton)
+
+  Since we're interested in the outcome of survival for each passenger or crew member, we will remove the Survived
+  feature from the dataset and store it as our target vector.    
+* Analysis
+
+** Imports and Helper Functions
+   #+BEGIN_SRC python :session titanic :results output
+     import numpy as np
+     import pandas as pd
+     from time import time
+     from tabulate import tabulate
+
+     ## Metrics
+     from sklearn.metrics import accuracy_score
+     from sklearn.metrics import classification_report
+
+     ## Tuning
+     from sklearn.feature_selection import SelectKBest
+     from sklearn.decomposition import PCA
+
+     from sklearn.model_selection import train_test_split
+     from sklearn.model_selection import GridSearchCV
+     from sklearn.metrics import make_scorer
+
+     ## Pipe
+     from sklearn.pipeline import Pipeline
+
+     # Make categorical into dummies
+     def cat2Dummies(X):
+         outX = pd.DataFrame(index=X.index)  # output dataframe, initially empty
+         #
+         # Check each column
+         for col, col_data in X.iteritems():
+             #
+             # For other categories convert to one or more dummy variables
+             if col_data.dtype == object:
+                 col_data = pd.get_dummies(col_data, prefix=col)  # e.g. 'school' => 'school_GP', 'school_MS'
+             #
+             outX = outX.join(col_data)  # collect column(s) in output dataframe
+         return outX
+
+   #+END_SRC
+
+   #+RESULTS:
+
+** Preprocess
+   #+BEGIN_SRC python :session titanic
+     ## Read Data
+     data = pd.read_csv("titanic_data.csv")
+
+     #########################################
+     # Get features and Dummy if necessary
+
+     # Create Cabin boolean feature (Did they have a cabin number or not)
+     has_cabin = pd.Series([1 if v == False else 0 for v in data['Cabin'].isnull()], )
+
+     # All relevant features (Cabin will be added back)
+     features = [f for f in data.columns if f not in
+                 ["Survived", 'Name', 'PassengerId', 'Cabin', 'Ticket' ] ]
+
+     X_all = pd.DataFrame(data[features], columns=features)
+
+     X_all['Cabin'] = has_cabin
+     y_all = pd.Series(data['Survived'])
+
+     good_indices = [i for i in X_all.index if not X_all['Age'].isnull()[i]]
+     X_all = X_all.iloc[good_indices]
+     y_all = y_all.iloc[good_indices]
+
+     ###############################
+     # Make categorical into dummies
+     X_all = cat2Dummies(X_all)
+     # print X_all.describe()
+
+     ############################
+     # Train/Test Split
+     X_train, X_test, y_train, y_test = train_test_split(X_all, y_all,
+                                                         test_size= 0.25,
+                                                         random_state = 123)
+
+   #+END_SRC
+
+   #+RESULTS:
+
+
+
+** Preliminary Pipe KBest/RandomForest
+   #+BEGIN_SRC python :session titanic :results output :exports results src
+     from sklearn.ensemble import RandomForestClassifier
+
+     print 'Preliminary Pipe KBest/RandomForest'
+     best_feats, max_acc = None, 0
+     for i in range(1,12):
+         clf = RandomForestClassifier(random_state=123)
+         select = SelectKBest(k=i)
+         steps = [('KBest', select), ('random_forest', clf)]
+         #
+         pipeline = Pipeline(steps)
+         fit = pipeline.fit(X_train, y_train)
+         y_prediction = pipeline.predict(X_test)
+         acc_score = accuracy_score(y_prediction, y_test)
+         #
+         if acc_score > max_acc:
+             best_feats = select.get_support(indices=True)
+         #
+         print "\n{} best features accuracy: {}".format(i, acc_score)
+
+
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+
+   >>> Preliminary Pipe KBest/RandomForest
+   >>> ... ... ... ... ... ... ... ... ... ... ... ... ... ... 
+   1 best features accuracy: 0.754189944134
+
+   2 best features accuracy: 0.754189944134
+
+   3 best features accuracy: 0.793296089385
+
+   4 best features accuracy: 0.793296089385
+
+   5 best features accuracy: 0.815642458101
+
+   6 best features accuracy: 0.810055865922
+
+   7 best features accuracy: 0.810055865922
+
+   8 best features accuracy: 0.804469273743
+
+   9 best features accuracy: 0.810055865922
+
+   10 best features accuracy: 0.837988826816
+
+   11 best features accuracy: 0.821229050279
+#+end_example
+
+
+
+
+** Gridsearch Tuning
+   #+BEGIN_SRC python :session titanic :results output :exports results src
+     grid_results = {}
+     params =  dict( KBest__k=range(6,11),
+                     
+                     # Random Forest Params 
+                     ran_forest__n_estimators = range(3,7),
+                     ran_forest__criterion= ["entropy", "gini"],
+                     ran_forest__max_features=["sqrt", "log2"],
+                     ran_forest__random_state= [0],)
+                     
+                     # ran_forest__max_depth= range(3,8),)
+                     # ran_forest__min_samples_split=range(2,8),
+                     # ran_forest__min_samples_leaf=range(2,8) )
+
+     steps = [('KBest', SelectKBest()),
+              ('ran_forest', RandomForestClassifier(random_state=123))]
+
+     for partition in range(2, 6):
+         pipe = Pipeline(steps)
+         scorer = make_scorer(accuracy_score)
+         #
+         grid_clf = GridSearchCV(pipe, param_grid=params, scoring=scorer,
+                                 n_jobs = 4,
+                                 cv=partition)
+         start = time()
+         grid_clf = grid_clf.fit(X_train, y_train)
+         grid_time = time() - start
+         #
+         train_acc = accuracy_score(grid_clf.predict(X_train), y_train)
+         #
+         grid_results['accuracy']= accuracy_score(grid_clf.predict(X_test), y_test)
+         grid_results['params'] = grid_clf.best_params_
+         grid_results['grid time'] = "{} s".format(grid_time)
+         #
+         print
+         print "{} cv buckets: ".format(partition)
+         print "Training accuracy: {}".format(train_acc)
+         print grid_results['accuracy'], grid_results['grid time'], 
+         print
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+
+   ... ... ... ... ... ... >>> ... ... ... ... >>> ... >>> >>> ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... 
+   2 cv buckets: 
+   Training accuracy: 0.895327102804
+   0.793296089385 2.59344983101 s
+
+   3 cv buckets: 
+   Training accuracy: 0.960747663551
+   0.815642458101 3.8913538456 s
+
+   4 cv buckets: 
+   Training accuracy: 0.96261682243
+   0.843575418994 5.15792107582 s
+
+   5 cv buckets: 
+   Training accuracy: 0.897196261682
+   0.776536312849 6.32729291916 s
+#+end_example
+
+** T-SNE 
+   #+BEGIN_SRC python
+     import matplotlib.pyplot as plt
+     from sklearn.preprocessing import MinMaxScaler
+     #
+     scaler = MinMaxScaler()
+     uX_all = scaler.fit_transform(X_all)
+
+     # Since our data set is not large we can indulge in
+     # the exact t-sne algorithm instead of the speedier 'barnes-hut'.
+     from sklearn.manifold import TSNE
+     model = TSNE(n_components=2,
+                  early_exaggeration=4.0,
+                  learning_rate=1000,
+                  n_iter=1000,
+                  init='pca',
+                  random_state=0,
+                  method='exact')
+     clusters = model.fit_transform(uX_all)
+
+     x_fail, y_fail = zip(*[ tuple(pt) for i, pt in enumerate(clusters) if y_all.iloc[i] == 0])
+     x_pass, y_pass = zip(*[ tuple(pt) for i, pt in enumerate(clusters) if y_all.iloc[i] == 1])
+     ax = plt.subplot(111)
+     ax.scatter(x_fail, y_fail, s=50, c='red', alpha=0.5, label="not survived")
+     ax.scatter(x_pass, y_pass, s=50, c='blue', alpha=0.5, label="survived")
+     plt.savefig("./figures/t-sne_all.png")
+   #+END_SRC

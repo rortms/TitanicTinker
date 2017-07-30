@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Titanic Survival Exploration</title>
+<!-- 2017-07-08 Sat 23:19 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="krolik" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Titanic Survival Exploration</h1>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Objective</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Explore a subset of the RMS titanic passenger manifest to determine which features best predict whether
+someone survived or did not survive.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Dataset</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+From a sample of the RMS Titanic data, we can see the various features present for each passenger on the ship:
+</p>
+
+<ul class="org-ul">
+<li>Survived: Outcome of survival (0 = No; 1 = Yes)
+</li>
+<li>Pclass: Socio-economic class (1 = Upper class; 2 = Middle class; 3 = Lower class)
+</li>
+<li>Name: Name of passenger
+</li>
+<li>Sex: Sex of the passenger
+</li>
+<li>Age: Age of the passenger (Some entries contain NaN)
+</li>
+<li>SibSp: Number of siblings and spouses of the passenger aboard
+</li>
+<li>Parch: Number of parents and children of the passenger aboard
+</li>
+<li>Ticket: Ticket number of the passenger
+</li>
+<li>Fare: Fare paid by the passenger
+</li>
+<li>Cabin Cabin number of the passenger (Some entries contain NaN)
+</li>
+<li>Embarked: Port of embarkation of the passenger (C = Cherbourg; Q = Queenstown; S = Southampton)
+</li>
+</ul>
+
+<p>
+Since we&rsquo;re interested in the outcome of survival for each passenger or crew member, we will remove the Survived
+feature from the dataset and store it as our target vector.    
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Analysis</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Imports and Helper Functions</h3>
+<div class="outline-text-3" id="text-3-1">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #0000FF;">import</span> numpy <span style="color: #0000FF;">as</span> np
+<span style="color: #0000FF;">import</span> pandas <span style="color: #0000FF;">as</span> pd
+<span style="color: #0000FF;">from</span> time <span style="color: #0000FF;">import</span> time
+<span style="color: #0000FF;">from</span> tabulate <span style="color: #0000FF;">import</span> tabulate
+
+<span style="color: #8D8D84;">## </span><span style="color: #8D8D84; font-style: italic;">Metrics</span>
+<span style="color: #0000FF;">from</span> sklearn.metrics <span style="color: #0000FF;">import</span> accuracy_score
+<span style="color: #0000FF;">from</span> sklearn.metrics <span style="color: #0000FF;">import</span> classification_report
+
+<span style="color: #8D8D84;">## </span><span style="color: #8D8D84; font-style: italic;">Tuning</span>
+<span style="color: #0000FF;">from</span> sklearn.feature_selection <span style="color: #0000FF;">import</span> SelectKBest
+<span style="color: #0000FF;">from</span> sklearn.decomposition <span style="color: #0000FF;">import</span> PCA
+
+<span style="color: #0000FF;">from</span> sklearn.model_selection <span style="color: #0000FF;">import</span> train_test_split
+<span style="color: #0000FF;">from</span> sklearn.model_selection <span style="color: #0000FF;">import</span> GridSearchCV
+<span style="color: #0000FF;">from</span> sklearn.metrics <span style="color: #0000FF;">import</span> make_scorer
+
+<span style="color: #8D8D84;">## </span><span style="color: #8D8D84; font-style: italic;">Pipe</span>
+<span style="color: #0000FF;">from</span> sklearn.pipeline <span style="color: #0000FF;">import</span> Pipeline
+
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Make categorical into dummies</span>
+<span style="color: #0000FF;">def</span> <span style="color: #006699;">cat2Dummies</span>(X):
+    <span style="color: #BA36A5;">outX</span> = pd.DataFrame(index=X.index)  <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">output dataframe, initially empty</span>
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Check each column</span>
+    <span style="color: #0000FF;">for</span> col, col_data <span style="color: #0000FF;">in</span> X.iteritems():
+        <span style="color: #8D8D84;">#</span>
+        <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">For other categories convert to one or more dummy variables</span>
+        <span style="color: #0000FF;">if</span> col_data.dtype == <span style="color: #006FE0;">object</span>:
+            <span style="color: #BA36A5;">col_data</span> = pd.get_dummies(col_data, prefix=col)  <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">e.g. 'school' =&gt; 'school_GP', 'school_MS'</span>
+        <span style="color: #8D8D84;">#</span>
+        <span style="color: #BA36A5;">outX</span> = outX.join(col_data)  <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">collect column(s) in output dataframe</span>
+    <span style="color: #0000FF;">return</span> outX
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Preprocess</h3>
+<div class="outline-text-3" id="text-3-2">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #8D8D84;">## </span><span style="color: #8D8D84; font-style: italic;">Read Data</span>
+<span style="color: #BA36A5;">data</span> = pd.read_csv(<span style="color: #008000;">"titanic_data.csv"</span>)
+
+<span style="color: #8D8D84;">#########################################</span>
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Get features and Dummy if necessary</span>
+
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Create Cabin boolean feature (Did they have a cabin number or not)</span>
+<span style="color: #BA36A5;">has_cabin</span> = pd.Series([1 <span style="color: #0000FF;">if</span> v == <span style="color: #D0372D;">False</span> <span style="color: #0000FF;">else</span> 0 <span style="color: #0000FF;">for</span> v <span style="color: #0000FF;">in</span> data[<span style="color: #008000;">'Cabin'</span>].isnull()], )
+
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">All relevant features (Cabin will be added back)</span>
+<span style="color: #BA36A5;">features</span> = [f <span style="color: #0000FF;">for</span> f <span style="color: #0000FF;">in</span> data.columns <span style="color: #0000FF;">if</span> f <span style="color: #0000FF;">not</span> <span style="color: #0000FF;">in</span>
+            [<span style="color: #008000;">"Survived"</span>, <span style="color: #008000;">'Name'</span>, <span style="color: #008000;">'PassengerId'</span>, <span style="color: #008000;">'Cabin'</span>, <span style="color: #008000;">'Ticket'</span> ] ]
+
+<span style="color: #BA36A5;">X_all</span> = pd.DataFrame(data[features], columns=features)
+
+<span style="color: #BA36A5;">X_all</span>[<span style="color: #008000;">'Cabin'</span>] = has_cabin
+<span style="color: #BA36A5;">y_all</span> = pd.Series(data[<span style="color: #008000;">'Survived'</span>])
+
+<span style="color: #BA36A5;">good_indices</span> = [i <span style="color: #0000FF;">for</span> i <span style="color: #0000FF;">in</span> X_all.index <span style="color: #0000FF;">if</span> <span style="color: #0000FF;">not</span> X_all[<span style="color: #008000;">'Age'</span>].isnull()[i]]
+<span style="color: #BA36A5;">X_all</span> = X_all.iloc[good_indices]
+<span style="color: #BA36A5;">y_all</span> = y_all.iloc[good_indices]
+
+<span style="color: #8D8D84;">###############################</span>
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Make categorical into dummies</span>
+<span style="color: #BA36A5;">X_all</span> = cat2Dummies(X_all)
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">print X_all.describe()</span>
+
+<span style="color: #8D8D84;">############################</span>
+<span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Train/Test Split</span>
+<span style="color: #BA36A5;">X_train</span>, <span style="color: #BA36A5;">X_test</span>, <span style="color: #BA36A5;">y_train</span>, <span style="color: #BA36A5;">y_test</span> = train_test_split(X_all, y_all,
+                                                    test_size= 0.25,
+                                                    random_state = 123)
+</pre>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Preliminary Pipe KBest/RandomForest</h3>
+<div class="outline-text-3" id="text-3-3">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #0000FF;">from</span> sklearn.ensemble <span style="color: #0000FF;">import</span> RandomForestClassifier
+
+<span style="color: #0000FF;">print</span> <span style="color: #008000;">'Preliminary Pipe KBest/RandomForest'</span>
+<span style="color: #BA36A5;">best_feats</span>, <span style="color: #BA36A5;">max_acc</span> = <span style="color: #D0372D;">None</span>, 0
+<span style="color: #0000FF;">for</span> i <span style="color: #0000FF;">in</span> <span style="color: #006FE0;">range</span>(1,12):
+    <span style="color: #BA36A5;">clf</span> = RandomForestClassifier(random_state=123)
+    <span style="color: #BA36A5;">select</span> = SelectKBest(k=i)
+    <span style="color: #BA36A5;">steps</span> = [(<span style="color: #008000;">'KBest'</span>, select), (<span style="color: #008000;">'random_forest'</span>, clf)]
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #BA36A5;">pipeline</span> = Pipeline(steps)
+    <span style="color: #BA36A5;">fit</span> = pipeline.fit(X_train, y_train)
+    <span style="color: #BA36A5;">y_prediction</span> = pipeline.predict(X_test)
+    <span style="color: #BA36A5;">acc_score</span> = accuracy_score(y_prediction, y_test)
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #0000FF;">if</span> acc_score &gt; max_acc:
+        <span style="color: #BA36A5;">best_feats</span> = select.get_support(indices=<span style="color: #D0372D;">True</span>)
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #0000FF;">print</span> <span style="color: #008000;">"\n{} best features accuracy: {}"</span>.<span style="color: #006FE0;">format</span>(i, acc_score)
+</pre>
+</div>
+
+<pre class="example">
+&gt;&gt;&gt; Preliminary Pipe KBest/RandomForest
+&gt;&gt;&gt; ... ... ... ... ... ... ... ... ... ... ... ... ... ... 
+1 best features accuracy: 0.754189944134
+
+2 best features accuracy: 0.754189944134
+
+3 best features accuracy: 0.793296089385
+
+4 best features accuracy: 0.793296089385
+
+5 best features accuracy: 0.815642458101
+
+6 best features accuracy: 0.810055865922
+
+7 best features accuracy: 0.810055865922
+
+8 best features accuracy: 0.804469273743
+
+9 best features accuracy: 0.810055865922
+
+10 best features accuracy: 0.837988826816
+
+11 best features accuracy: 0.821229050279
+</pre>
+</div>
+</div>
+
+
+
+
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Gridsearch Tuning</h3>
+<div class="outline-text-3" id="text-3-4">
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #BA36A5;">grid_results</span> = {}
+<span style="color: #BA36A5;">params</span> =  <span style="color: #006FE0;">dict</span>( KBest__k=<span style="color: #006FE0;">range</span>(6,11),
+
+                <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">Random Forest Params </span>
+                ran_forest__n_estimators = <span style="color: #006FE0;">range</span>(3,7),
+                ran_forest__criterion= [<span style="color: #008000;">"entropy"</span>, <span style="color: #008000;">"gini"</span>],
+                ran_forest__max_features=[<span style="color: #008000;">"sqrt"</span>, <span style="color: #008000;">"log2"</span>],
+                ran_forest__random_state= [0],)
+
+                <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">ran_forest__max_depth= range(3,8),)</span>
+                <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">ran_forest__min_samples_split=range(2,8),</span>
+                <span style="color: #8D8D84;"># </span><span style="color: #8D8D84; font-style: italic;">ran_forest__min_samples_leaf=range(2,8) )</span>
+
+<span style="color: #BA36A5;">steps</span> = [(<span style="color: #008000;">'KBest'</span>, SelectKBest()),
+         (<span style="color: #008000;">'ran_forest'</span>, RandomForestClassifier(random_state=123))]
+
+<span style="color: #0000FF;">for</span> partition <span style="color: #0000FF;">in</span> <span style="color: #006FE0;">range</span>(2, 6):
+    <span style="color: #BA36A5;">pipe</span> = Pipeline(steps)
+    <span style="color: #BA36A5;">scorer</span> = make_scorer(accuracy_score)
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #BA36A5;">grid_clf</span> = GridSearchCV(pipe, param_grid=params, scoring=scorer,
+                            n_jobs = 4,
+                            cv=partition)
+    <span style="color: #BA36A5;">start</span> = time()
+    <span style="color: #BA36A5;">grid_clf</span> = grid_clf.fit(X_train, y_train)
+    <span style="color: #BA36A5;">grid_time</span> = time() - start
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #BA36A5;">train_acc</span> = accuracy_score(grid_clf.predict(X_train), y_train)
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #BA36A5;">grid_results</span>[<span style="color: #008000;">'accuracy'</span>]= accuracy_score(grid_clf.predict(X_test), y_test)
+    <span style="color: #BA36A5;">grid_results</span>[<span style="color: #008000;">'params'</span>] = grid_clf.best_params_
+    <span style="color: #BA36A5;">grid_results</span>[<span style="color: #008000;">'grid time'</span>] = <span style="color: #008000;">"{} s"</span>.<span style="color: #006FE0;">format</span>(grid_time)
+    <span style="color: #8D8D84;">#</span>
+    <span style="color: #0000FF;">print</span>
+    <span style="color: #0000FF;">print</span> <span style="color: #008000;">"{} cv buckets: "</span>.<span style="color: #006FE0;">format</span>(partition)
+    <span style="color: #0000FF;">print</span> <span style="color: #008000;">"Training accuracy: {}"</span>.<span style="color: #006FE0;">format</span>(train_acc)
+    <span style="color: #0000FF;">print</span> grid_results[<span style="color: #008000;">'accuracy'</span>], grid_results[<span style="color: #008000;">'grid time'</span>], 
+    <span style="color: #0000FF;">print</span>
+</pre>
+</div>
+
+<pre class="example">
+... ... ... ... ... ... &gt;&gt;&gt; ... ... ... ... &gt;&gt;&gt; ... &gt;&gt;&gt; &gt;&gt;&gt; ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... 
+2 cv buckets: 
+Training accuracy: 0.895327102804
+0.793296089385 2.59344983101 s
+
+3 cv buckets: 
+Training accuracy: 0.960747663551
+0.815642458101 3.8913538456 s
+
+4 cv buckets: 
+Training accuracy: 0.96261682243
+0.843575418994 5.15792107582 s
+
+5 cv buckets: 
+Training accuracy: 0.897196261682
+0.776536312849 6.32729291916 s
+</pre>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
