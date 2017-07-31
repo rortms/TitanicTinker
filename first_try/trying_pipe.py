@@ -274,8 +274,13 @@ print "Training time: {}".format(grid_results['grid time'])
 print
 
 # Create prediction csv
-predictions = grid_clf.predict(X_test)
-np.savetxt("./random_forest_prediction.csv", predictions, delimiter=',')
+predictions =  pd.DataFrame(grid_clf.predict(X_test),
+                            index=test['PassengerId'],
+                            columns=['Survived'])
+predictions.to_csv("./random_forest_prediction.csv")
+
+
+#np.savetxt("./random_forest_prediction.csv", predictions, delimiter=',')
 
 
 
